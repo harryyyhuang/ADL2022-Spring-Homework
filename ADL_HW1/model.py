@@ -1,3 +1,4 @@
+
 from ast import arg
 from typing import Dict
 
@@ -59,19 +60,23 @@ class SeqSlotClassifier(torch.nn.Module):
         self.rnn = getattr(torch.nn, args.backbone)(embeddings.shape[-1], args.hidden_size, args.num_layers, dropout=args.dropout, bidirectional=args.bidirectional)
         
         self.rnn_out_num = 2 if (args.bidirectional == True) else 1
-        self.fcn = torch.nn.Linear(args.hidden_size*self.rnn_out_num, self.num_class)
+        self.fcn = torch.nn.Linear(args.hidden_size*self.rnn_out_num, args.hidden_size*self.rnn_out_num)
+        self.fcn2 = torch.nn.Linear(args.hidden_size*self.rnn_out_num, self.num_class)
         self.fcn_drop = torch.nn.Dropout(args.dropout)
         self.bn1 = torch.nn.BatchNorm1d(args.hidden_size*self.rnn_out_num)
+        self.relu = torch.nn.ReLU()
 
 
     def forward(self, batch) -> Dict[str, torch.Tensor]:
         # TODO: implement model forward
 
         text_strs = self.embed(batch)
+        text_strs = self.fcn_drop(text_strs)
         text_out, text_hn = self.rnn(text_strs.permute(1, 0, 2))
         text_out = text_out.reshape(-1, self.hidden_size*self.rnn_out_num)
         out = self.fcn(text_out)
-        out = self.fcn_drop(out)
+        out = self.relu(out)
+        out = self.fcn2(out)
         
         return out.reshape(self.max_len, -1, self.num_class).permute(1, 0, 2)
 

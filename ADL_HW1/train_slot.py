@@ -1,3 +1,4 @@
+
 from ast import arg
 import json
 import pickle
@@ -121,7 +122,7 @@ def main(args):
         if(current_eval_acc > best_eval_acc):
             best_eval_acc = current_eval_acc
             print("saving model ...")
-            torch.save(model.state_dict(), args.ckpt_dir / "test.pt")
+            torch.save(model.state_dict(), args.ckpt_dir / "baseline.pt")
 
 
     # TODO: Inference on test set
@@ -149,13 +150,13 @@ def parse_args() -> Namespace:
     )
 
     # data
-    parser.add_argument("--max_len", type=int, default=35)
+    parser.add_argument("--max_len", type=int, default=40)
 
     # model
     parser.add_argument("--backbone", type=str, help="RNN, LSTM, GRU", default="GRU") 
     parser.add_argument("--hidden_size", type=int, default=512)
     parser.add_argument("--num_layers", type=int, default=2)
-    parser.add_argument("--dropout", type=float, default=0.1)
+    parser.add_argument("--dropout", type=float, default=0.3)
     parser.add_argument("--bidirectional", type=bool, default=True)
 
     # optimizer

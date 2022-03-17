@@ -17,6 +17,8 @@ import csv
 from tqdm import tqdm
 
 import numpy as np
+from seqeval.metrics import classification_report
+from seqeval.scheme import IOB2
 
 # fix random seed
 def same_seeds(seed):
@@ -37,7 +39,7 @@ def main(args):
     tag2idx: Dict[str, int] = json.loads(tag_idx_path.read_text())
 
     data = json.loads(args.test_file.read_text())
-    dataset = SeqSlotDataset(data, vocab, tag2idx, args.max_len, "test")
+    dataset = SeqSlotDataset(data, vocab, tag2idx, args.max_len, data_split="train")
     # TODO: crecate DataLoader for test dataset
     test_loader = DataLoader(dataset, batch_size=args.batch_size, shuffle=False,
                             collate_fn=dataset.collate_fn)
@@ -52,29 +54,21 @@ def main(args):
 
     # ckpt = torch.load(args.ckpt_path)
     # load weights into model
-    outputs = []
+    predictions = []
+    groundTruths = []
 
     for batch_data in tqdm(test_loader):
         data_ids, data_strs, data_labels, data_lengths = batch_data
         data_strs = torch.tensor(data_strs, dtype=torch.long ).to(args.device)
         output = model(data_strs) 
         out_tags = output.argmax(dim=2)
-        for id, out_tag, data_length in zip(data_ids, out_tags, data_lengths):
-            tag_string = dataset.idx2label_list(out_tag, data_length)
-            outputs.append([id, tag_string])
+        for data_label, out_tag, data_length in zip(data_labels, out_tags, data_lengths):
+            predict = dataset.idx2label_list(out_tag, data_length)
+            predictions.append(predict)
+            label = dataset.idx2label_list(data_label, data_length)
+            groundTruths.append(label)
 
-
-    # TODO: predict dataset
-
-    # TODO: write prediction to file (args.pred_file)
-    with open(args.pred_file, 'w') as out_file:
-        out_file.write("id,tags\n")
-        for output in outputs:
-            out_file.write(f"{output[0]},")
-            for tag in output[1][:-1]:
-                out_file.write(f"{tag} ")
-            out_file.write(f"{output[1][-1]}\n")
-
+    print(classification_report(groundTruths, predictions, scheme=IOB2, mode="strict"))
 
 
 def parse_args() -> Namespace:
@@ -98,11 +92,9 @@ def parse_args() -> Namespace:
         default="./ckpt/slot/baseline.pt",
     )
 
-    parser.add_argument("--pred_file", type=Path, help="Output prediction file", required=True)
-
 
     # data
-    parser.add_argument("--max_len", type=int, default=40)
+    parser.add_argument("--max_len", type=int, default=35)
 
     # model
     parser.add_argument("--backbone", type=str, help="RNN, LSTM, GRU", default="GRU") 

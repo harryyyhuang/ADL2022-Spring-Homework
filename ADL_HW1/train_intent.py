@@ -124,7 +124,7 @@ def main(args):
         if(current_eval_acc > best_eval_acc):
             best_eval_acc = current_eval_acc
             print("saving model ...")
-            torch.save(model.state_dict(), args.ckpt_dir / "testing.pt")
+            torch.save(model.state_dict(), args.ckpt_dir / "baseline.pt")
 
 
 
