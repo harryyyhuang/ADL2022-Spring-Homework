@@ -23,3 +23,17 @@ curl -L https://www.dropbox.com/sh/yhniyx1n0jcuekm/AADzEQTgixIfplXuGehNqL92a?dl=
 unzip cache.zip
 
 rm cache.zip
+
+cd ..
+
+if [ ! -d data/ ]; then
+    mkdir -p data/
+fi
+
+cd data
+
+curl -L https://www.dropbox.com/sh/bj9b0te1ecd95b1/AABiSLxuRZifL-pAplzS40YXa?dl=1 > data.zip
+
+unzip data.zip
+
+rm data.zip
