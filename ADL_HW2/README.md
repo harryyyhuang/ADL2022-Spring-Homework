@@ -33,7 +33,7 @@ start training selection !
 ./train_selection.sh
 ```
 
-We have provide some default config int train_selection.sh file.
+We have provide some default config in train_selection.sh file.
 
 
 start training qa !
